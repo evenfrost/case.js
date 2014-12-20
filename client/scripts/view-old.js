@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * A view constructor function.
  * @param {HTMLElement|String} root The root element.
@@ -7,7 +5,10 @@
  * @param {Object} options The options object.
  */
 function View(root, options) {
-  var parent, elements, len;
+  'use strict';
+
+  var elements,
+      len, parent;
 
   this.root = root;
   this.options = options;
@@ -23,88 +24,59 @@ function View(root, options) {
   if (!this.options)
     this.options = {};
 
-  // set parent view if defined
-  // or use body otherwise
-  parent = this.options.parent;
-  this.parent = parent ? parent : document.body;
 
-  // set object of view elements if defined
-  // for the purpose of easier selections 
+  // set parent view if defined
+  parent = this.options.parent;
+  // this.parent = parent ? parent : document.body;
+  this.parent = parent ? parent : null;
+
+  // set view elements
   this.elements = {};
   elements = this.root.querySelectorAll('[data-element]');
-  for (var i = elements.length - 1; i >= 0; i--) {
+  len = elements.length;
+  for (var i = 0; i < len; i++) {
     var el = elements[i];
-
-    this.elements[el.dataset.element] = new ViewElement(el);
-  };
-
+    this.elements[el.dataset.element] = el;
+  }
+  
 }
 
 /**
- * A view element constructor.
- * Defines elements inside a view.
- * @param {HTMLElement|String} root The root element.
- *                                  Got as [data-element] if string.
+ * Selects view elements.
+ * @param  {String|Array}  selection The view elements to be selected.
+ * @return {ViewSelection}           New view selection.
  */
-// function ViewElement(element) {
+View.prototype.select = function (selection) {
+  var set = new ViewSelection(),
+      len;
 
-//   this.element = element;
+  if (typeof selection === 'string')
+    selection = [selection];
 
-//   // get root element in case the name is provided
-//   if (typeof this.element === 'string')
-//     this.element = document.querySelector('[data-element=' + element + ']');
-
-//   // root element must be defined
-//   if (!this.element)
-//     throw new Error('An element root is not found.');
-
-// }
-
-// ViewElementSet.prototype = new Array();
-
-// function ViewElementSet(elements) {
-//   this.elements = elements;
-// }
-
-/**
- * Selects a view element(s).
- * @param  {String|Array} elements   The view elements.
- * @return {ViewElement}    The ViewElement (single or elements set).
- */
-View.prototype.select = function (elements) {
-  // var selection = this.elements[element] || this.root.querySelectorAll(element);
-  var selection = query.split()
-      selection = this.root.querySelectorAll('[data-element]'),
-      len = selection.length,
-      set = [];
-
-  if (!len)
-    return null;
+  len = selection.length;
 
   for (var i = 0; i < len; i++) {
-    var el = selection[i];
+    set.push(this.root.querySelector('[data-element="' + selection[i] + '"]'));
+  }
 
-    set.push(new ViewElement(el));
-  };
-
-  return set.length === 1 ? set[0] : set;
+  return set;
 };
 
 /**
- * Binds listeners to particular events.
- * @param {String}   types    The space-separated string of event types to listen to.
- * @param {Function} listener The listener function.
- * 
- * @todo Make possible to attach multiple listeners.
+ * A view selection constructor.
+ * @extends {Array}
  */
-View.prototype.on = function (types, listener) {
+function ViewSelection() {}
+
+ViewSelection.prototype = new Array();
+
+ViewSelection.prototype.on = function (types, listener) {
   types = types.split(' ');
 
-  var set = this.elements || this.element || this.root;
-
-  for (var i = 0; i < types.length; i++) {
-    var type = types[i];
-    this.root.addEventListener(type, listener);
-  };
+  for (var i = this.length - 1; i >= 0; i--) {
+    for (var n = types.length - 1; n >= 0; n--) {
+      this[i].addEventListener(types[n], listener);
+    }
+  }
 
 };

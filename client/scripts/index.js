@@ -1,13 +1,19 @@
-(function () {
+// (function () {
   
-  var mainView = new View('main');
+  var mainView = new View('main', {
+    elements: {
+      paragraph: document.querySelector('p')
+    }
+  });
 
-  console.log(mainView.elements.title);
+  console.log(mainView.elements.paragraph);
 
-  mainView
-    .select(['title', 'description'])
-    .on('mouseup mousedown', function (event) {
-      console.log(event.currentTarget);
-    });
+  // var title = new ViewElement('title');
 
-})();
+  // console.log(title);
+
+  // title.on('mousedown mouseup', function (event) {
+  //   console.log(event.type);
+  // });
+
+// })();
