@@ -1,12 +1,12 @@
 // (function () {
   
   var mainView = new View('main', {
-    elements: {
+    nodes: {
       paragraph: document.querySelector('p')
     }
   });
 
-  console.log(mainView.elements.paragraph);
+  console.log(mainView.nodes);
 
   // var title = new ViewElement('title');
 

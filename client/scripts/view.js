@@ -2,26 +2,26 @@
 
 
 /**
- * A view element constructor function.
- * @param {HTMLElement|String} element The HTML element or [data-element] string.
+ * A view node constructor function.
+ * @param {HTMLElement|String} element The HTML element or [data-node] string.
  * @param {Object}             options The options object.
  */
-function ViewElement(element, root) {
+function ViewNode(element, root) {
   this.element = element;
   this.root = root || null;
 
   if (typeof this.element === 'string')
-    this.element = document.querySelector('[data-element=' + element + ']');
+    this.element = document.querySelector('[data-view-node=' + element + ']');
 
   if (!this.element)
     throw new Error('An HTMLElement is not found.');
 
 }
 
-ViewElement.prototype.on = function (types, listener) {
+ViewNode.prototype.on = function (types, listener) {
   types = types.split(' ');
 
-  for (var n = types.length - 1; n >= 0; n--) {
+  for (var n = types.length, len = types.length; n < len; n++) {
     this.element.addEventListener(types[n], listener);
   }
 
@@ -34,8 +34,7 @@ ViewElement.prototype.on = function (types, listener) {
  */
 function View(element, options) {
   var that = this,
-      elements, observer,
-      _len;
+      nodes, observer;
 
   that.element = element;
   that.options = options;
@@ -51,22 +50,21 @@ function View(element, options) {
   if (!that.options)
     that.options = {};
 
-  // set view elements
-  that.elements = {};
+  // set view nodes
+  that.nodes = {};
 
-  // 1) add dom elements to view elements property 
-  elements = Array.prototype.slice.call(that.element.querySelectorAll('[data-element]'));
-  _len = elements.length;
-  for (var i = 0; i < _len; i++) {
-    var el = elements[i];
-    that.elements[el.dataset.element] = new ViewElement(el, this);
+  // 1) add dom nodes to view nodes property 
+  nodes = Array.prototype.slice.call(that.element.querySelectorAll('[data-view-node]'));
+  for (var i = 0, len = nodes.length; i < len; i++) {
+    var el = nodes[i];
+    that.nodes[el.dataset.viewNode] = new ViewNode(el, this);
   }
 
-  // 2) add elements from options to view elements property 
-  elements = that.options.elements || {};
-  for (var key in elements) {
-    if (elements.hasOwnProperty(key))
-      that.elements[key] = new ViewElement(elements[key], this);
+  // 2) add nodes from options to view nodes property 
+  nodes = that.options.nodes || {};
+  for (var key in nodes) {
+    if (nodes.hasOwnProperty(key))
+      that.nodes[key] = new ViewNode(nodes[key], this);
   }
 
   // set nodes observer
@@ -78,27 +76,25 @@ function View(element, options) {
           added = mutation.addedNodes,
           removed = mutation.removedNodes;
 
-      // add elements to the view on node insert 
-      for (var n = added.length - 1; n >= 0; n--) {
-
+      // add nodes to the view on node insert 
+      for (var n = 0, len = added.length; n < len; n++) {
         var addedElement = added[n],
             addedDataset = addedElement.dataset;
 
         if (!addedDataset || !addedDataset.element)
           continue;
 
-        that.elements[addedDataset.element] = new ViewElement(addedElement);
-
+        that.nodes[addedDataset.element] = new ViewNode(addedElement);
       }
 
-      // remove elements from the view on node removal 
-      for (var n = removed.length - 1; n >= 0; n--) {
-        for (var key in that.elements) {
+      // remove nodes from the view on node removal 
+      for (var n = 0, len = removed.length; n < len; n++) {
+        for (var key in that.nodes) {
 
-          if (that.elements.hasOwnProperty(key)
-           && that.elements[key].element === removed[n]) {
+          if (that.nodes.hasOwnProperty(key)
+           && that.nodes[key].element === removed[n]) {
 
-            delete that.elements[key];
+            delete that.nodes[key];
 
           }
 
@@ -116,4 +112,4 @@ function View(element, options) {
   
 }
 
-View.prototype.on = ViewElement.prototype.on;
+View.prototype.on = ViewNode.prototype.on;
